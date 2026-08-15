@@ -1,35 +1,31 @@
-const CACHE_NAME = 'croma-tools-cache-v1';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+const CACHE_NAME = 'croma-app-v1';
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
-// Install Service Worker and Cache Assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
+  self.skipWaiting();
 });
 
-// Activate Service Worker and Clean Old Caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then((keys) => {
       return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
+        keys.map((key) => {
+          if (key !== CACHE_NAME) return caches.delete(key);
         })
       );
     })
   );
+  self.clients.claim();
 });
 
-// Fetch Requests from Cache first, then Network
+// Chrome install prompt ke liye ye fetch handler sabse zaroori hai
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
